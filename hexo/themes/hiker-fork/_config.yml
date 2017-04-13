@@ -30,7 +30,10 @@ avatar:
 # eg. home_background_image: [css/images/home-bg.jpg, css/images/sample.jpg]
 home_background_image:
   enable: true
-  url: [css/images/home-bg.jpg, css/images/sample.jpg]
+  url: [https://okwmjvg92.qnssl.com/cablecar.jpeg, 
+      https://okwmjvg92.qnssl.com/seat.jpeg, https://okwmjvg92.qnssl.com/forest.jpeg, 
+      https://okwmjvg92.qnssl.com/forest2.jpeg, https://okwmjvg92.qnssl.com/stairs.jpeg, 
+      https://okwmjvg92.qnssl.com/stairs.jpeg, https://okwmjvg92.qnssl.com/blueberry.jpeg]
 
 home_logo_image:
   enable: false

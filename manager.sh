@@ -16,11 +16,12 @@ app_nginx_https_port=443
 function _ensure_dir_and_files() {
     ensure_dir "$app_storage_path"
     ensure_dir "$app_log_path"
-    ensure_dir "$app_nginx_path"
-
-    run_cmd "cp -r $prj_path/hexo $app_hexo_path"
-    run_cmd "cp -r $prj_path/blog $app_hexo_path/source"
-    run_cmd "cp -r $devops_prj_path/nginx-data $app_nginx_path/confs"
+#    ensure_dir "$app_hexo_path"
+#    ensure_dir "$app_nginx_path"
+#
+#    run_cmd "cp -r $prj_path/hexo/ $app_hexo_path/"
+#    run_cmd "cp -r $prj_path/blog/ $app_hexo_path/source/"
+#    run_cmd "cp -r $devops_prj_path/nginx-data/ $app_nginx_path/confs"
 }
 
 function _init_field() {
@@ -31,12 +32,8 @@ function _init_field() {
 
     app_storage_path="/opt/data/$app"
     app_log_path="$app_storage_path/logs"
-    app_hexo_path="$app_storage_path/hexo"
-    app_nginx_path="$app_storage_path/nginx"
-}
-
-function init() {
-    _ensure_dir_and_files
+#    app_hexo_path="$app_storage_path/hexo"
+#    app_nginx_path="$app_storage_path/nginx"
 }
 
 function _load_config() {
@@ -44,6 +41,10 @@ function _load_config() {
         echo 'please sh manager.sh init first'
         exit 1
     fi
+}
+
+function init() {
+    _ensure_dir_and_files
 }
 
 # init  
@@ -71,7 +72,8 @@ function run_hexo() {
     local node_modules_cache="/tmp/$app/node_modules"
 
     local args="-d --restart always"
-    args="$args -v $app_hexo_path:$container_root"
+    args="$args -v $prj_path/hexo:$container_root"
+    args="$args -v $prj_path/blog:$container_root/source"
     args="$args -v $node_modules_cache:$container_root/node_modules"
     args="$args -w $container_root"
     args="$args --name $hexo_container"
@@ -97,8 +99,8 @@ function run_nginx() {
     local args="-d --restart=always"
     args="$args -p $app_nginx_http_port:80"
     args="$args -p $app_nginx_https_port:443"
-    args="$args -v $app_nginx_path/confs:/etc/nginx"
-    args="$args -v $app_nginx_path/logs:/var/log/nginx"
+    args="$args -v $devops_prj_path/nginx-data:/etc/nginx"
+    args="$args -v $app_log_path:/var/log/nginx"
     args="$args --link $hexo_container:hexo"
     args="$args --name $nginx_container"
 

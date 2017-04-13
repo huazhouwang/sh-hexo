@@ -9,5 +9,4 @@ ENV root=/hexo
 WORKDIR ${root}
 
 CMD npm install && \
-    hexo generate && \
-    hexo server -p 4000 -s
+    hexo server -p 4000
