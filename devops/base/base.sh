@@ -48,6 +48,12 @@ function stop_container() {
     run_cmd "$cmd"
 }
 
+function restart_container() {
+    local container="$1"
+
+    run_cmd "docker restart $container"
+}
+
 function build_image() {
     local image="$1"
     local dockerfile="$2"
@@ -56,9 +62,16 @@ function build_image() {
 }
 
 function to_container() {
-    local contaienr = "$1"
+    local container="$1"
 
-    run_cmd "docker exec $docker_run_fg_mode $contaienr bash"
+    run_cmd "docker exec $docker_run_fg_mode $container sh"
+}
+
+function log_container() {
+    local container="$1"
+    echo $container
+
+    run_cmd "docker logs -f $container"
 }
 
 function push_image() {

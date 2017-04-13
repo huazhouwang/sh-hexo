@@ -1,11 +1,13 @@
-FROM node:latest
+FROM node
 MAINTAINER wang huazhou "huazhou19@gmail.com"
 
 # install hexo
-RUN npm install hexo-cli -g \
-	&& npm install hexo-server --save
+
+RUN npm install -g hexo-cli
 
 ENV root=/hexo 
 WORKDIR ${root}
 
-CMD ["hexo", "server","-i","0.0.0.0"]
+CMD npm install && \
+    hexo generate && \
+    hexo server -p 4000 -s
