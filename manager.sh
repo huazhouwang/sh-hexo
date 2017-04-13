@@ -90,7 +90,7 @@ function to_hexo() {
 }
 
 function hexo_g() {
-    run_cmd "docker exec $hexo_container hexo clean && hexo generate"
+    run_cmd "docker exec $hexo_container sh -c 'hexo clean && hexo generate'"
 }
 
 function run_nginx() {
@@ -157,7 +157,7 @@ function help() {
             clean
 
             to_hexo
-            hexo_g
+            hexo_g   invoke hexo clean and hexo generate
         
             log_hexo
             log_nginx
@@ -165,14 +165,13 @@ function help() {
 EOF
 }
 
-action=${1:-help}
-
 ALL_COMMANDS="help"
 ALL_COMMANDS="$ALL_COMMANDS build init run stop restart clean"
 ALL_COMMANDS="$ALL_COMMANDS to_hexo hexo_g"
 ALL_COMMANDS="$ALL_COMMANDS log_hexo log_nginx"
 
-list_contains ALL_COMMANDS "$action"
+action=${1:-help}
+list_contains ALL_COMMANDS "$action" || action=help
 
 _init_field
 
