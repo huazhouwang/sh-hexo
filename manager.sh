@@ -6,22 +6,15 @@ prj_path=$(cd $(dirname $0); pwd -P)
 devops_prj_path="$prj_path/devops"
 
 nginx_image=nginx:1.11-alpine
-hexo_image=hexo
+hexo_image=hexo:7.9.0-alpine
 
 app_basic_name="blog"
 developer_name="huazhou"
-app_nginx_http_port=80
-app_nginx_https_port=443
+app_nginx_http_port=4000
 
 function _ensure_dir_and_files() {
     ensure_dir "$app_storage_path"
     ensure_dir "$app_log_path"
-#    ensure_dir "$app_hexo_path"
-#    ensure_dir "$app_nginx_path"
-#
-#    run_cmd "cp -r $prj_path/hexo/ $app_hexo_path/"
-#    run_cmd "cp -r $prj_path/blog/ $app_hexo_path/source/"
-#    run_cmd "cp -r $devops_prj_path/nginx-data/ $app_nginx_path/confs"
 }
 
 function _init_field() {
@@ -32,8 +25,6 @@ function _init_field() {
 
     app_storage_path="/opt/data/$app"
     app_log_path="$app_storage_path/logs"
-#    app_hexo_path="$app_storage_path/hexo"
-#    app_nginx_path="$app_storage_path/nginx"
 }
 
 function _load_config() {
@@ -74,7 +65,7 @@ function run_hexo() {
     local args="-d --restart always"
     args="$args -v $prj_path/hexo:$container_root"
     args="$args -v $prj_path/blog:$container_root/source"
-    args="$args -v $node_modules_cache:$container_root/node_modules"
+    args="$args -v $prj_path/themes:$container_root/themes"
     args="$args -w $container_root"
     args="$args --name $hexo_container"
 
@@ -91,14 +82,20 @@ function to_hexo() {
     to_container "$hexo_container"
 }
 
-function hexo_g() {
-    run_cmd "docker exec $hexo_container sh -c 'hexo clean && hexo generate'"
+function hexo() {
+    if [ $# -lt 2 ]; then
+        echo 'pleace sh manager.sh hexo {hexo cmd}'
+        exit 1
+    fi
+
+    local hexo_cmd=${*:2}
+    run_cmd "docker exec $hexo_container sh -c 'hexo $hexo_cmd'"
 }
 
 function run_nginx() {
     local args="-d --restart=always"
+    args="$args -w /var/log/nginx"
     args="$args -p $app_nginx_http_port:80"
-    args="$args -p $app_nginx_https_port:443"
     args="$args -v $devops_prj_path/nginx-data:/etc/nginx"
     args="$args -v $app_log_path:/var/log/nginx"
     args="$args --link $hexo_container:hexo"
@@ -113,6 +110,10 @@ function stop_nginx() {
 
 function restart_nginx() {
     restart_container "$nginx_container"
+}
+
+function to_nginx() {
+    run_cmd "docker exec -it $nginx_container sh"
 }
 
 function run() {
@@ -141,6 +142,7 @@ function log_nginx() {
 function clean() {
     stop
     run_cmd "docker run --rm $docker_run_fg_mode -v /opt/data:/opt/data $nginx_image rm -rf $app_storage_path"
+    run_cmd "docker run --rm $docker_run_fg_mode -v $prj_path/hexo:/hexo -w /hexo $nginx_image rm -rf public source themes node_modules"
 }
 
 function help() {
@@ -149,28 +151,29 @@ function help() {
     Usage: sh manager.sh [options]
     
         Valid options are:
-            help 
+            help                show this help message and exit 
 
-            build 
-            init
-            run 
-            stop
-            restart
-            clean
+            build               build hexo image  
+            init                initialize project, like directories
+            run                 run project 
+            stop                stop project
+            restart             restart project
+            clean               clean project
 
-            to_hexo
-            hexo_g   invoke hexo clean and hexo generate
+            to_hexo             enter hexo container
+            hexo                execute hexo command, usage sh manager.sh hexo {hexo cmd}
+            to_nginx            enter nginx project
         
-            log_hexo
-            log_nginx
+            log_hexo            log hexo docker
+            log_nginx           log nginx docker
             
 EOF
 }
 
 ALL_COMMANDS="help"
 ALL_COMMANDS="$ALL_COMMANDS build init run stop restart clean"
-ALL_COMMANDS="$ALL_COMMANDS to_hexo hexo_g"
-ALL_COMMANDS="$ALL_COMMANDS log_hexo log_nginx"
+ALL_COMMANDS="$ALL_COMMANDS to_hexo hexo"
+ALL_COMMANDS="$ALL_COMMANDS log_hexo log_nginx to_nginx"
 
 action=${1:-help}
 list_contains ALL_COMMANDS "$action" || action=help
