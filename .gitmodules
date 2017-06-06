@@ -1,0 +1,3 @@
+[submodule "themes/hexo-theme-hiker"]
+	path = themes/hexo-theme-hiker
+	url = git@gitlab.com:wanghuazhou/hexo-theme-hiker.git
